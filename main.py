@@ -10,24 +10,25 @@ if __name__ == "__main__":
 
     # Define all the variables we want to use
     Learning_Rate = 0.000025
-    Batch_Size = 32
+    Batch_Size = 8
     Epochs = 2
-    path = "/data/"
-    model_path = "/models/"
+    path = "data/"
+    model_path = "models/"
 
     # Check to see if Cuda cores are available
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Bring forth the data
     dataset = CellDataset(path)
+    print(len(dataset.images))
 
     # Split the data set between training and valadation
     generator = torch.Generator().manual_seed(64)
     train_dataset, val_dataset = random_split(dataset, [0.8, 0.2], generator=generator)
 
     # Data Loaders
-    train_dataloader = DataLoader(dataset=train_dataset, Batch_Size= Batch_Size, shuffle=True)
-    val_dataloader = DataLoader(dataset=val_dataset, batch_size= Batch_Size, shuffle=True)
+    train_dataloader = DataLoader(dataset=train_dataset, batch_size= Batch_Size, shuffle=True, num_workers=4)
+    val_dataloader = DataLoader(dataset=val_dataset, batch_size= Batch_Size, shuffle=True, num_workers=4)
 
     # Define Model
     model = UNet(in_channels=3, num_classes=1).to(device)
@@ -46,12 +47,12 @@ if __name__ == "__main__":
             optimzer.zero_grad()
 
             loss = criterion(y_pred, mask)
-            train_running_loss  = train_running_loss+ loss.item()
+            training_running_loss  = training_running_loss+ loss.item()
 
             loss.backward()
             optimzer.step()
 
-        train_loss = train_running_loss / idx+1
+        train_loss = training_running_loss / idx+1
 
         model.eval()
         val_running_loss = 0
